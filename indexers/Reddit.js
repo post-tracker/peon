@@ -122,26 +122,6 @@ class Reddit {
         </blockquote>`;
     }
 
-    async getRedirectUrl ( url ) {
-        let response;
-
-        try {
-            response = await got( url,
-                {
-                    headers: {
-                        'user-agent': USER_AGENT,
-                    },
-                }
-            );
-        } catch ( urlLoadError ) {
-            console.log( `${ url } could not be resolved as. It returned a ${ urlLoadError.statusCode }` );
-
-            return false;
-        }
-
-        return response.url;
-    }
-
     async parsePost ( accountId, currentPost ) {
         const post = new Post();
         let parentPost = '';
@@ -151,18 +131,6 @@ class Reddit {
                 // Posted a reply (probably)
                 post.topicTitle = currentPost.data.link_title;
                 post.topicUrl = currentPost.data.link_url;
-
-                if ( currentPost.data.link_url.indexOf( 'www.reddit.com' ) === -1 ) {
-                    const redirectUrl = await this.getRedirectUrl( `${ this.apiBase }/comments/${ this.parseId( currentPost.data.link_id ) }/` );
-
-                    if ( redirectUrl ) {
-                        post.topicUrl = redirectUrl;
-                    } else {
-                        // If the redirect is broken, we don't want to store the post right now
-                        throw new Error( `Got no redirect for ${ currentPost.data.link_url }` );
-                    }
-                }
-
                 post.url = `${ post.topicUrl }${ currentPost.data.id }/`;
                 parentPost = await this.getParentPostHTML( currentPost.data.link_id, currentPost.data.parent_id );
                 post.text = parentPost + this.decodeHtml( currentPost.data.body_html );

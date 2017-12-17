@@ -13,7 +13,7 @@ const redditQueue = new Queue(
     {
         limiter: {
             max: 1,
-            duration: 3000, // Might be 3 request / post (content, redirect & parent)
+            duration: 2000, // Might be 2 requests / post (content & parent)
         },
         redis: QUEUE,
     }
