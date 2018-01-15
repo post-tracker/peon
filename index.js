@@ -7,7 +7,7 @@ if ( !process.env.REDIS_URL ) {
 }
 
 const redditQueue = new Queue(
-    'reddit',
+    'reddit-posts',
     process.env.REDIS_URL,
     {
         limiter: {
