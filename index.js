@@ -2,20 +2,18 @@ const Queue = require( 'bull' );
 
 const reddit = require( './indexers/Reddit' );
 
-const QUEUE = JSON.parse( process.env.QUEUE );
-
-if ( !QUEUE ) {
+if ( !process.env.REDIS_URL ) {
     throw new Error( 'Got no queue, exiting' );
 }
 
 const redditQueue = new Queue(
     'reddit',
+    process.env.REDIS_URL,
     {
         limiter: {
             max: 1,
             duration: 2000, // Might be 2 requests / post (content & parent)
         },
-        redis: QUEUE,
     }
 );
 
