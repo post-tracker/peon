@@ -158,7 +158,7 @@ class Reddit {
                     if ( currentPost.data.selftext_html ) {
                         post.text = this.decodeHtml( currentPost.data.selftext_html );
                     } else if ( currentPost.data.secure_media_embed.content ) {
-                        post.text( this.decodeHtml( currentPost.data.secure_media_embed.content ) );
+                        post.text = this.decodeHtml( currentPost.data.secure_media_embed.content );
                     }
                     // For t3 the individual URL is the same as the topic
                     post.url = post.topicUrl;
