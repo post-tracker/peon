@@ -11,6 +11,13 @@ const htmlEntities = new AllHtmlEntities();
 
 const USER_AGENT = 'Peon 1.0.0 by /u/Kokarn';
 
+const IMAGE_DOMAINS = [
+    'i.redd.it',
+    'i.imgflip.com',
+    'imgur.com',
+    'i.imgur.com',
+];
+
 class Reddit {
     constructor () {
         this.apiBase = 'https://www.reddit.com';
@@ -95,10 +102,15 @@ class Reddit {
             //throw new Error( `Unable to find post with id ${ commentID } in ${ this.getTopicLink( topicID ) }` );
         }
 
-        const text = commentData.data.body_html || commentData.data.selftext_html;
+        let text = commentData.data.body_html || commentData.data.selftext_html;
+
+        if ( !text && commentData.data.secure_media_embed && commentData.data.secure_media_embed.content ) {
+            text = commentData.data.secure_media_embed.content;
+        }
 
         if ( !text ) {
             // If we reply directly to a topic, this might be the case
+            // Should probably handle this in some cool cases
 
             return '';
         }
@@ -130,7 +142,7 @@ class Reddit {
             case 't1':
                 // Posted a reply (probably)
                 post.topicTitle = currentPost.data.link_title;
-                post.topicUrl = currentPost.data.link_url;
+                post.topicUrl = currentPost.data.link_permalink || currentPost.data.link_url;
                 post.url = `${ post.topicUrl }${ currentPost.data.id }/`;
                 parentPost = await this.getParentPostHTML( currentPost.data.link_id, currentPost.data.parent_id );
                 post.text = parentPost + this.decodeHtml( currentPost.data.body_html );
@@ -142,15 +154,26 @@ class Reddit {
                 post.topicTitle = currentPost.data.title;
                 post.topicUrl = currentPost.data.url;
 
-                if ( !currentPost.data.selftext_html ) {
-                    // User posted a link to somewhere
-                    console.log( 'Post to link' );
+                if ( currentPost.data.selftext_html || ( currentPost.data.secure_media_embed && currentPost.data.secure_media_embed.content ) ) {
+                    if ( currentPost.data.selftext_html ) {
+                        post.text = this.decodeHtml( currentPost.data.selftext_html );
+                    } else if ( currentPost.data.secure_media_embed.content ) {
+                        post.text( this.decodeHtml( currentPost.data.secure_media_embed.content ) );
+                    }
+                    // For t3 the individual URL is the same as the topic
+                    post.url = post.topicUrl;
+                } else {
+                    post.url = `https://www.reddit.com${ currentPost.data.permalink }`;
 
-                    return false;
+                    if ( IMAGE_DOMAINS.includes( currentPost.data.domain ) ) {
+                        post.text = `<img src="${ currentPost.data.url }" title="${ currentPost.data.title }" />`;
+
+                        // For images the link in the title should point to the reddit page
+                        post.topicUrl = post.url;
+                    } else {
+                        post.text = `<a href="${ currentPost.data.url }">${ currentPost.data.title }</a>`;
+                    }
                 }
-
-                post.text = this.decodeHtml( currentPost.data.selftext_html );
-                post.url = currentPost.data.url;
 
                 break;
             default:
