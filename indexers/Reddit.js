@@ -109,9 +109,14 @@ class Reddit {
         }
 
         if ( !text ) {
-            // If we reply directly to a topic, this might be the case
-            // Should probably handle this in some cool cases
+            if ( IMAGE_DOMAINS.includes( commentData.data.domain ) ) {
+                text = htmlEntities.encode( `<img src="${ commentData.data.url }" title="${ commentData.data.title }" />` );
+            } else {
+                text = htmlEntities.encode( `<a href="${ commentData.data.url }">${ commentData.data.title }</a>` );
+            }
+        }
 
+        if ( !text ) {
             return '';
         }
 
