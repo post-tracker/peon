@@ -2,13 +2,13 @@ const Queue = require( 'bull' );
 
 const reddit = require( './indexers/Reddit' );
 
-if ( !process.env.REDIS_URL ) {
+if ( !process.env.HEROKU_REDIS_COPPER_URL && !process.env.REDIS_URL ) {
     throw new Error( 'Got no queue, exiting' );
 }
 
 const redditQueue = new Queue(
     'reddit-posts',
-    process.env.REDIS_URL,
+    process.env.HEROKU_REDIS_COPPER_URL || process.env.REDIS_URL,
     {
         limiter: {
             max: 1,
