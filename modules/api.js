@@ -39,7 +39,7 @@ const get = function get ( requestPath, queryParams ) {
             response.setEncoding( 'utf8' );
 
             if ( response.statusCode !== SUCESS_STATUS_CODE ) {
-                reject( new Error( `${ API_HOST }${ requestPath } returned ${ response.statusCode }` ) );
+                reject( new Error( `https://${ API_HOST }${ requestPath } returned ${ response.statusCode }` ) );
 
                 return false;
             }
@@ -84,7 +84,7 @@ const post = function post ( requestPath, item ) {
             response.setEncoding( 'utf8' );
 
             if ( response.statusCode !== SUCESS_STATUS_CODE ) {
-                reject( new Error( `${ API_HOST }${ requestPath } returned ${ response.statusCode }` ) );
+                reject( new Error( `https://${ API_HOST }${ requestPath } returned ${ response.statusCode }` ) );
 
                 return false;
             }
