@@ -24,9 +24,9 @@ redditQueue.on( 'error', ( queueError ) => {
 redditQueue.on( 'failed', ( job, jobError ) => {    
     // If the API returns duplicate, don't keep it around
     if(jobError.message.includes('returned 409')){
-        console.log(`Discared job ${job.id} as the content is a duplicate`);
-        job.discard();
-        
+        console.log(`Removed job ${job.id} as the content is a duplicate`);
+        job.remove();
+
         return true;
     }
     
