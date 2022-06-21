@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "bull": "^3.3.7",
-    "got": "^7.1.0",
+    "got": "^11.8.5",
     "html-entities": "^1.2.1"
   }
 }
