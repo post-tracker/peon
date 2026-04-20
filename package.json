@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bull": "^3.3.7",
+    "bull": "^3.29.3",
     "got": "^7.1.0",
     "html-entities": "^1.2.1"
   }
