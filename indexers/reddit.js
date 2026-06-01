@@ -194,4 +194,4 @@ class Reddit {
     }
 }
 
-module.exports = new Reddit();
+module.exports = Reddit;
