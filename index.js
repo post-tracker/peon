@@ -1,27 +1,29 @@
+require( 'dotenv' ).config();
+
 const Queue = require( 'bull' );
 
-const reddit = require( './indexers/Reddit' );
+const indexers = require( './indexers' );
 
 if ( !process.env.REDIS_URL ) {
     throw new Error( 'Got no queue, exiting' );
 }
 
-const redditQueue = new Queue(
-    'reddit-posts',
+const postsQueue = new Queue(
+    'posts',
     process.env.REDIS_URL,
     {
         limiter: {
             max: 1,
-            duration: 2000, // Might be 2 requests / post (content & parent)
+            duration: 10000,
         },
     }
 );
 
-redditQueue.on( 'error', ( queueError ) => {
+postsQueue.on( 'error', ( queueError ) => {
     console.error( queueError );
 } );
 
-redditQueue.on( 'failed', ( job, jobError ) => {    
+postsQueue.on( 'failed', ( job, jobError ) => {
     // If the API returns duplicate, don't keep it around
     if(jobError.message.includes('returned 409')){
         console.log(`Removed job ${job.id} as the content is a duplicate`);
@@ -29,18 +31,26 @@ redditQueue.on( 'failed', ( job, jobError ) => {
 
         return true;
     }
-    
+
     console.error( jobError );
 } );
 
-redditQueue.process( ( job ) => {
-    console.log( `Running job ${ job.id } for ${ job.data.game }` );
+postsQueue.process( 'reddit', ( job ) => {
+    console.log( `Running ${ job.name } job ${ job.id } for ${ job.data.game }` );
+
+    if ( !indexers[ job.name ] ) {
+        console.error( `No indexer specified for ${ job.name }` );
+
+        return Promise.reject();
+    }
 
     if ( !job.data.accountId ) {
         return job.discard();
     }
 
-    return reddit.parsePost( job.data.accountId, job.data.post )
+    const postIndexer = new indexers[ job.name ]( job.data.post.indexerConfig );
+
+    return postIndexer.parsePost( job.data.accountId, job.data.post )
         .then( ( post ) => {
             if ( !post ) {
                 console.log( `Discarding job ${ job.id } because we didn't get a post` );

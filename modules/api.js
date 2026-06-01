@@ -3,10 +3,8 @@ const querystring = require( 'querystring' );
 const fs = require( 'fs' );
 const path = require( 'path' );
 
-const API_HOST = 'api.developertracker.com';
-const API_PORT = 443;
-// const API_HOST = 'lvh.me';
-// const API_PORT = 3000;
+const API_HOST = process.env.API_HOST || 'api.developertracker.com';
+const API_PORT = process.env.API_PORT || 443;
 
 const SUCESS_STATUS_CODE = 200;
 
