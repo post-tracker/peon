@@ -5,11 +5,12 @@ const {
 } = require( 'html-entities' );
 
 const Post = require( '../modules/Post.js' );
+const redditAuth = require( '../modules/reddit-auth.js' );
 
 const xmlEntities = new XmlEntities();
 const htmlEntities = new AllHtmlEntities();
 
-const USER_AGENT = 'Peon 1.0.0 by /u/Kokarn';
+const UNAUTHORIZED_STATUS_CODE = 401;
 
 const IMAGE_DOMAINS = [
     'i.redd.it',
@@ -20,8 +21,10 @@ const IMAGE_DOMAINS = [
 
 class Reddit {
     constructor () {
-        this.apiBase = 'https://www.reddit.com';
-        this.singleCommentUrl = '/comments/{topicID}.json?limit=1000';
+        // The unauthenticated .json endpoints are blocked, so we talk to the
+        // OAuth API host with a bearer token (see modules/reddit-auth).
+        this.apiBase = 'https://oauth.reddit.com';
+        this.singleCommentUrl = '/comments/{topicID}?limit=1000';
 
         this.requestCount = 0;
     }
@@ -38,15 +41,38 @@ class Reddit {
         return this.apiBase + this.singleCommentUrl.replace( '{topicID}', this.parseId( topicID ) );
     }
 
-    async getTopic ( topicID ) {
-        this.requestCount = this.requestCount + 1;
+    async authedGet ( url ) {
+        const token = await redditAuth.getToken();
 
-        return await got( this.getTopicLink( topicID ), {
+        return got( url, {
             headers: {
-                'user-agent': USER_AGENT,
+                authorization: `bearer ${ token }`,
+                'user-agent': redditAuth.userAgent(),
             },
             json: true,
         } );
+    }
+
+    async getTopic ( topicID ) {
+        this.requestCount = this.requestCount + 1;
+
+        const url = this.getTopicLink( topicID );
+
+        try {
+            return await this.authedGet( url );
+        } catch ( requestError ) {
+            const statusCode = requestError.statusCode || ( requestError.response && requestError.response.statusCode );
+
+            // A 401 means the token was rejected (expired or revoked early).
+            // Drop it and retry once with a fresh one before giving up.
+            if ( statusCode === UNAUTHORIZED_STATUS_CODE ) {
+                redditAuth.invalidateToken();
+
+                return await this.authedGet( url );
+            }
+
+            throw requestError;
+        }
     }
 
     findComment ( listing, commentID ) {
