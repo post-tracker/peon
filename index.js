@@ -35,7 +35,10 @@ postsQueue.on( 'failed', ( job, jobError ) => {
     console.error( jobError );
 } );
 
-postsQueue.process( 'reddit', ( job ) => {
+// Same parse-and-save flow for every service; the per-service difference lives
+// in the indexer's parsePost. Each job name needs its own registration because
+// the single 'posts' consumer fails any name it has no handler for.
+const processPost = function processPost ( job ) {
     console.log( `Running ${ job.name } job ${ job.id } for ${ job.data.game }` );
 
     if ( !indexers[ job.name ] ) {
@@ -65,4 +68,7 @@ postsQueue.process( 'reddit', ( job ) => {
             console.log( someError );
             throw someError;
         } );
-} );
+};
+
+postsQueue.process( 'reddit', processPost );
+postsQueue.process( 'strapi', processPost );
