@@ -71,4 +71,5 @@ const processPost = function processPost ( job ) {
 };
 
 postsQueue.process( 'reddit', processPost );
+postsQueue.process( 'rss', processPost );
 postsQueue.process( 'strapi', processPost );
