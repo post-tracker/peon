@@ -3,4 +3,5 @@ module.exports = {
     rss: require( './rss' ),
     strapi: require( './strapi' ),
     discourse: require( './discourse' ),
+    xenforo: require( './xenforo' ),
 };
