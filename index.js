@@ -72,5 +72,6 @@ const processPost = function processPost ( job ) {
 
 postsQueue.process( 'reddit', processPost );
 postsQueue.process( 'rss', processPost );
+postsQueue.process( 'bluesky', processPost );
 postsQueue.process( 'strapi', processPost );
 postsQueue.process( 'discourse', processPost );
