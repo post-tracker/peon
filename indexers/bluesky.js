@@ -12,8 +12,8 @@ const MILLISECONDS_PER_SECOND = 1000;
 // The stub already carries everything (text/url/date/section + an optional
 // external link-card), so this parser is service-agnostic and never talks to
 // the AppView itself. A Bluesky post body is plain text (facets are byte-range
-// overlays we don't expand), so we escape it, keep line breaks, append the
-// external link-card when present, and always link back to the post.
+// overlays we don't expand), so we escape it, keep line breaks, and append the
+// external link-card when present.
 class Bluesky {
     async parsePost ( accountId, currentPost ) {
         const data = currentPost.data || {};
@@ -36,7 +36,7 @@ class Bluesky {
         post.topicTitle = data.title;
         post.topicUrl = data.url;
         post.url = data.url;
-        post.text = `<p>${ bodyHtml }</p>${ embedHtml }<p><a href="${ data.url }">View on Bluesky</a></p>`;
+        post.text = `<p>${ bodyHtml }</p>${ embedHtml }`;
         post.section = data.section;
         post.accountId = accountId;
         post.timestamp = Math.floor( new Date( data.publishDate ).getTime() / MILLISECONDS_PER_SECOND );
